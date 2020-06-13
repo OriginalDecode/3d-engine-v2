@@ -92,9 +92,9 @@ export namespace configure {
   }
 
   export async function configure(rootDir: string, options: Options) {
-    let premake = `${rootDir}\\premake5`;
+    let premake = `${rootDir}\\premake5.exe`;
     if (!fs.existsSync(premake)) {
-      premake = `${rootDir}\\source\\premake5`;
+      premake = `${rootDir}\\source\\premake5.exe`;
       if (!fs.existsSync(premake)) {
         throw 'Failed to find premake5';
       }
@@ -113,8 +113,9 @@ export namespace configure {
       `${options.generator}`,
       options.clean ? 'clean' : '',
     ]);
+    
     proc.stdout.pipe(split2()).on('data', (data: any) => {
-      console.log(chalk.white(data.toString()));
+      console.log(chalk.blueBright(data.toString()));
     });
 
     proc.stderr.pipe(split2()).on('data', (data: any) => {
