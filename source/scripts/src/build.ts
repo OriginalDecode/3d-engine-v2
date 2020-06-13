@@ -8,6 +8,7 @@ interface BuildOptions {
   solution?: string; // only valid on windows
   verbosity: string;
   config: string;
+  rebuild: boolean;
 }
 
 function buildLinux(rootDir: string) {
@@ -48,7 +49,7 @@ function buildWindows(rootDir: string, options: BuildOptions): any {
       '/p:GenerateFullPaths=true',
       `/p:Configuration=${options.config}`,
       '/p:Platform=Windows',
-      '/t:rebuild',
+      '/t:build',
       `-v:${options.verbosity}`,
     ]);
 
@@ -88,8 +89,8 @@ function build(rootDir: string, options: BuildOptions) {
   });
 
   proc.on('exit', (data: any) => {
+    console.log({ warnings, errors });
     if (data === 0) {
-      console.log({ warnings, errors });
       console.log(chalk.green('Compile finished successfully!'));
     }
   });
