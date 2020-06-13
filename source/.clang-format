@@ -1,9 +1,9 @@
 ---
-ColumnLimit: 180
+ColumnLimit: 120
 AlignEscapedNewlinesLeft: 'true'
 AlignTrailingComments: 'true'
 AllowShortBlocksOnASingleLine: 'false'
-AllowShortFunctionsOnASingleLine: 'false'
+AllowShortFunctionsOnASingleLine: 'Inline'
 AllowShortIfStatementsOnASingleLine: 'false'
 AllowShortLoopsOnASingleLine: 'false'
 AlignTrailingComments: 'true'
