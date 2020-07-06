@@ -1,8 +1,8 @@
 #include "VlkInstance.h"
 #include "VlkSurface.h"
 #include "VlkPhysicalDevice.h"
+#include "logger/Debug.h"
 
-#include <cassert>
 #include <vulkan/vulkan.h>
 #ifdef _WIN32
 #include <windows.h>
@@ -10,112 +10,111 @@
 #endif
 
 #include <vector>
-#include <logger/Debug.h>
 
-VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT /* flags */, VkDebugReportObjectTypeEXT /* objectType */, uint64_t /* object */, size_t /* location */,
-												   int32_t /* messageCode */, const char* /* pLayerPrefix */, const char* pMessage, void* /* pUserData */)
+VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT /* flags */,
+												   VkDebugReportObjectTypeEXT /* objectType */, uint64_t /* object */,
+												   size_t /* location */, int32_t /* messageCode */,
+												   const char* /* pLayerPrefix */, const char* pMessage,
+												   void* /* pUserData */)
 {
 	char temp[USHRT_MAX] = { 0 };
 	sprintf_s(temp, "Vulkan Warning :%s", pMessage);
-	OutputDebugStringA(pMessage);
-	OutputDebugStringA("\n");
 	LOG_MESSAGE(temp);
-	// assert( false && temp );
 	return VK_FALSE;
 }
 
 #define VK_GET_FNC_POINTER(function, instance) (PFN_##function) vkGetInstanceProcAddr(instance, #function)
 
-namespace Graphics
+constexpr char* validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
+constexpr char* extentions[] = { "VK_KHR_surface", "VK_KHR_win32_surface", "VK_EXT_debug_report" };
+VkDebugReportCallbackEXT debugCallback = nullptr;
+
+void SetupDebugCallback(VkInstance instance)
 {
-	constexpr char* validationLayers[] = { "VK_LAYER_LUNARG_standard_validation" };
-	constexpr char* extentions[] = { "VK_KHR_surface", "VK_KHR_win32_surface", "VK_EXT_debug_report" };
-	VkDebugReportCallbackEXT debugCallback = nullptr;
+	auto FCreateCallback = VK_GET_FNC_POINTER(vkCreateDebugReportCallbackEXT, instance);
+	assert(FCreateCallback && "Failed to setup callback!");
 
-	void SetupDebugCallback(VkInstance instance)
-	{
-		auto FCreateCallback = VK_GET_FNC_POINTER(vkCreateDebugReportCallbackEXT, instance);
-		assert(FCreateCallback && "Failed to setup callback!");
+	if(!FCreateCallback)
+		return;
 
-		if(!FCreateCallback)
-			return;
+	VkDebugReportFlagsEXT flags =
+		VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
 
-		VkDebugReportFlagsEXT flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+	VkDebugReportCallbackCreateInfoEXT createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+	createInfo.pfnCallback = &DebugReportCallback;
+	createInfo.flags = flags;
 
-		VkDebugReportCallbackCreateInfoEXT createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-		createInfo.pfnCallback = &DebugReportCallback;
-		createInfo.flags = flags;
+	VkResult result = FCreateCallback(instance, &createInfo, nullptr, &debugCallback);
+	assert(result == VK_SUCCESS);
+}
 
-		VkResult result = FCreateCallback(instance, &createInfo, nullptr, &debugCallback);
-		assert(result == VK_SUCCESS);
-	}
+VlkInstance::~VlkInstance()
+{
+	Release();
+}
 
-	VlkInstance::~VlkInstance() { Release(); }
+void VlkInstance::Init()
+{
+	VkApplicationInfo appInfo = {};
 
-	void VlkInstance::Init()
-	{
-		VkApplicationInfo appInfo = {};
+	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+	appInfo.pApplicationName = "Kaffe BÃ¶nan";
+	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+	appInfo.pEngineName = "Kaffe BÃ¶nan";
+	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+	appInfo.apiVersion = VK_API_VERSION_1_1;
 
-		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName = "Kaffe Bönan";
-		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-		appInfo.pEngineName = "Kaffe Bönan";
-		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		appInfo.apiVersion = VK_API_VERSION_1_1;
+	VkInstanceCreateInfo instanceCreateInfo = {};
 
-		VkInstanceCreateInfo instanceCreateInfo = {};
+	instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	instanceCreateInfo.pApplicationInfo = &appInfo;
 
-		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		instanceCreateInfo.pApplicationInfo = &appInfo;
+	instanceCreateInfo.enabledLayerCount = ARRSIZE(validationLayers);
+	instanceCreateInfo.ppEnabledLayerNames = &validationLayers[0];
 
-		instanceCreateInfo.enabledLayerCount = ARRSIZE(validationLayers);
-		instanceCreateInfo.ppEnabledLayerNames = &validationLayers[0];
+	instanceCreateInfo.enabledExtensionCount = ARRSIZE(extentions);
+	instanceCreateInfo.ppEnabledExtensionNames = extentions;
 
-		instanceCreateInfo.enabledExtensionCount = ARRSIZE(extentions);
-		instanceCreateInfo.ppEnabledExtensionNames = extentions;
+	VERIFY(vkCreateInstance(&instanceCreateInfo, nullptr /*allocator*/, &m_Instance) == VK_SUCCESS, "Failed to create instance");
 
-		VkResult result = vkCreateInstance(&instanceCreateInfo, nullptr /*allocator*/, &m_Instance);
-		assert(result == VK_SUCCESS && "Failed to create Vulkan instance!");
+	SetupDebugCallback(m_Instance);
+}
 
-		SetupDebugCallback(m_Instance);
-	}
+void VlkInstance::Release()
+{
+	auto destoryer = VK_GET_FNC_POINTER(vkDestroyDebugReportCallbackEXT, m_Instance);
+	destoryer(m_Instance, debugCallback, nullptr);
 
-	void VlkInstance::Release()
-	{
-		auto destoryer = VK_GET_FNC_POINTER(vkDestroyDebugReportCallbackEXT, m_Instance);
-		destoryer(m_Instance, debugCallback, nullptr);
+	vkDestroyInstance(m_Instance, nullptr);
+}
 
-		vkDestroyInstance(m_Instance, nullptr);
-	}
+VkSurfaceKHR VlkInstance::CreateSurface(const VkWin32SurfaceCreateInfoKHR& createInfo) const
+{
+	VkSurfaceKHR surface = nullptr;
+	VERIFY(vkCreateWin32SurfaceKHR(m_Instance, &createInfo, nullptr, &surface) == VK_SUCCESS, "Failed to create surface");
 
-	VkSurfaceKHR VlkInstance::CreateSurface(const VkWin32SurfaceCreateInfoKHR& createInfo) const
-	{
-		VkSurfaceKHR surface = nullptr;
-		VkResult result = vkCreateWin32SurfaceKHR(m_Instance, &createInfo, nullptr, &surface);
-		assert(result == VK_SUCCESS);
+	return surface;
+}
 
-		return surface;
-	}
+std::unique_ptr<VlkSurface> VlkInstance::CreateSurface(const VkWin32SurfaceCreateInfoKHR& createInfo,
+													   VlkPhysicalDevice* physicalDevice) const
+{
+	auto surface = std::make_unique<VlkSurface>();
+	surface->Init(CreateSurface(createInfo), physicalDevice);
+	return surface;
+}
 
-	upVlkSurface VlkInstance::CreateSurface(const VkWin32SurfaceCreateInfoKHR& createInfo, VlkPhysicalDevice* physicalDevice) const
-	{
-		upVlkSurface surface = std::make_unique<VlkSurface>();
-		surface->Init(CreateSurface(createInfo), physicalDevice);
-		return surface;
-	}
+void VlkInstance::DestroySurface(VkSurfaceKHR pSurface)
+{
+	vkDestroySurfaceKHR(m_Instance, pSurface, nullptr);
+}
 
-	void VlkInstance::DestroySurface(VkSurfaceKHR pSurface) { vkDestroySurfaceKHR(m_Instance, pSurface, nullptr); }
+void VlkInstance::GetPhysicalDevices(std::vector<VkPhysicalDevice>& deviceList)
+{
+	uint32 device_count = 0;
+	VERIFY(vkEnumeratePhysicalDevices(m_Instance, &device_count, nullptr) == VK_SUCCESS, "Failed to enum device!");
 
-	void VlkInstance::GetPhysicalDevices(std::vector<VkPhysicalDevice>& deviceList)
-	{
-		uint32 device_count = 0;
-		VkResult result = vkEnumeratePhysicalDevices(m_Instance, &device_count, nullptr);
-		assert(result == VK_SUCCESS && "Failed to enumerate device!");
-
-		deviceList.resize(device_count);
-		result = vkEnumeratePhysicalDevices(m_Instance, &device_count, deviceList.data());
-		assert(result == VK_SUCCESS && "Failed to enumerate device!");
-	}
-
-}; // namespace Graphics
+	deviceList.resize(device_count);
+	VERIFY(vkEnumeratePhysicalDevices(m_Instance, &device_count, deviceList.data()) == VK_SUCCESS, "Failed to enum devices!");
+}

@@ -1,9 +1,11 @@
 #pragma once
 
 #ifndef DEBUG
+
 #define ASSERT(expression, string)
 #define LOG_MESSAGE(...)
 #define LOG_DEBUG(...)
+
 #define VERIFY(expr, ...) (void)(expr)
 #else
 
@@ -18,6 +20,7 @@
 #define LOG_DEBUG(...) Log::Debug::GetInstance()->DebugMessage(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
 
 #define VERIFY(expr, ...) ASSERT(expr, __VA_ARGS__)
+
 #endif
 
 #include <string>
