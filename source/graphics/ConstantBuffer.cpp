@@ -1,56 +1,49 @@
-// #include "ConstantBuffer.h"
+#include "ConstantBuffer.h"
 
-// #include "GraphicsEngine.h"
-// #include "Utilities.h"
+#include "VlkDevice.h"
+#include "VlkPhysicalDevice.h"
 
-// #include <d3d11.h>
+#include <vulkan/vulkan_core.h>
 
-// ConstantBuffer::~ConstantBuffer()
-// {
-// 	m_Buffer->Release();
-// }
+ConstantBuffer::ConstantBuffer()
+{
+	m_MemoryRequirement = {};
+}
 
-// void ConstantBuffer::Bind(const uint32 index, const uint32 shader_binding)
-// {
-// 	const uint32 index_array[6] = { index, index, index, index, index, index };
-// 	Bind(index_array, shader_binding);
-// }
+void ConstantBuffer::Init(VlkDevice* device)
+{
+	if(m_Vars.Size() <= 0)
+	{
+		ASSERT(false, "You have to Register some variables before initializing the constant buffer!");
+		return;
+	}
 
-// void ConstantBuffer::Bind(const uint32 index[], const uint32 shader_binding)
-// {
-// 	ID3D11Device* device = Graphics::GetDevice();
-// 	ID3D11DeviceContext* context = nullptr;
-// 	device->GetImmediateContext(&context);
-// 	D3D11_MAPPED_SUBRESOURCE subresource;
-// 	ZeroMemory(&subresource, sizeof(D3D11_MAPPED_SUBRESOURCE));
+	VkBufferCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	createInfo.size = m_BufferSize;
+	createInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+	createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-// 	HRESULT hr = context->Map(m_Buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
-// 	assert(!FAILED(hr) && "Failed to map buffer to graphics memory!");
+	auto [buffer, memReq] = device->CreateBuffer(createInfo);
+	m_Buffer = buffer;
+	m_MemoryRequirement = memReq;
+}
 
+void ConstantBuffer::Bind(VlkDevice* device, VlkPhysicalDevice* physDevice)
+{
+	VkDeviceMemory memory = device->BindBuffer(m_Buffer, m_MemoryRequirement, physDevice);
+	int8* data = (int8*)device->MapMemory(memory, 0, m_BufferSize, 0);
+	memcpy(data, &m_Vars[0], m_BufferSize);
 
-// 	memcpy(&static_cast<uint8*>(subresource.pData)[0], &m_Variables[0], m_BufferSize);
+	device->UnmapMemory(memory);
+}
 
-// 	context->Unmap(m_Buffer, 0);
+void ConstantBuffer::Destroy(VkDevice device)
+{
+	vkDestroyBuffer(device, m_Buffer, nullptr);
+}
 
-// 	if (shader_binding & EShaderType_VERTEX)
-// 		context->VSSetConstantBuffers(index[0], 1, &m_Buffer);
-
-// 	if (shader_binding & EShaderType_FRAGMENT)
-// 		context->PSSetConstantBuffers(index[1], 1, &m_Buffer);
-
-// 	if (shader_binding & EShaderType_GEOMETRY)
-// 		context->GSSetConstantBuffers(index[2], 1, &m_Buffer);
-
-// 	if (shader_binding & EShaderType_HULL)
-// 		context->HSSetConstantBuffers(index[3], 1, &m_Buffer);
-
-// 	if (shader_binding & EShaderType_DOMAIN)
-// 		context->DSSetConstantBuffers(index[4], 1, &m_Buffer);
-
-// 	if (shader_binding & EShaderType_COMPUTE)
-// 		context->CSSetConstantBuffers(index[5], 1, &m_Buffer);
-
-// 	context->Release();
-
-// }
-
+VkDescriptorBufferInfo ConstantBuffer::GetBufferDesc()
+{
+	return VkDescriptorBufferInfo{ .buffer{ m_Buffer }, .offset{ 0 }, .range{ m_BufferSize } };
+}

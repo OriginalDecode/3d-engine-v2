@@ -39,6 +39,7 @@ if (args.indexOf('-build') != -1) {
     const verbosity = args[args.indexOf('-v') + 1];
     const config = args[args.indexOf('-c') + 1];
     const clean = args.indexOf('-clean') != -1;
-    build(process.cwd(), { platform, solution, verbosity, config });
+    const rebuild = args.indexOf('-rebuild') != -1;
+    build(process.cwd(), { platform, solution, verbosity, config, rebuild });
   }
 }

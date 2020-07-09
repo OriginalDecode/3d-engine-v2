@@ -31,24 +31,20 @@ namespace Graphics
 
 	GraphicsEngine& GraphicsEngine::Get() { return *m_Instance; }
 
-	bool GraphicsEngine::Init( const Window& window )
+	bool GraphicsEngine::Init(const Window& window)
 	{
-		m_Device = std::make_unique<vkGraphicsDevice>();
-
-		if( !m_Device->Init( window ) )
-		{
+		vkGraphicsDevice::Create();
+		vkGraphicsDevice& device = vkGraphicsDevice::Get();
+		if(!device.Init(window))
 			return false;
-		}
 
 		return true;
 	}
 
-	void GraphicsEngine::Present( float dt ) { m_Device->DrawFrame( dt ); }
-
-	Camera* GraphicsEngine::GetCamera() { return m_Device->GetCamera(); }
+	void GraphicsEngine::Present(float dt) { vkGraphicsDevice::Get().DrawFrame(dt); }
 
 	void GraphicsEngine::BeginFrame() {}
 
-	GraphicsEngine::~GraphicsEngine() {}
+	GraphicsEngine::~GraphicsEngine() { vkGraphicsDevice::Destroy(); }
 
 }; // namespace Graphics

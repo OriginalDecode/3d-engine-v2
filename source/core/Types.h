@@ -3,6 +3,7 @@
 #if defined(_MSC_VER)
 typedef unsigned __int8 uint8;
 typedef __int8 int8;
+typedef __int8* ptr;
 #elif(_CLANG_)
 typedef unsigned char uint8;
 typedef unsigned char int8;

@@ -1,5 +1,3 @@
-
-
 #include "graphics/Window.h"
 #include "graphics/GraphicsEngine.h"
 
@@ -26,7 +24,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE /*prevInstance*/, LPSTR /*lpCmd
 	Window::CreateInfo createInfo{ 1920.f, 1080.f, instance, WindowProc };
 
 	Window window(createInfo);
-	window.SetText("Kaffe bönan");
+	window.SetText("Kaffe bï¿½nan");
 
 	Graphics::GraphicsEngine::Create();
 	Graphics::GraphicsEngine& graphics_engine = Graphics::GraphicsEngine::Get();

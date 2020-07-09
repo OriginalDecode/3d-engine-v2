@@ -5,7 +5,7 @@
 #include "Core/math/Vector3.h"
 #include "Core/math/Vector2.h"
 #include "Core/containers/GrowingArray.h"
-
+#include "Core/containers/Array.h"
 /*
 	different macros for unit tests
 
@@ -53,16 +53,39 @@ TEST(Vector4, dot)
 TEST(GrowingArray, create)
 {
 	Core::GrowingArray<float> array;
-	ASSERT_TRUE(array.Size() != array.Capacity());
-	ASSERT_TRUE(array.Size() == 0);
-	ASSERT_TRUE(array.Capacity() == 10); // if the default capacity ever changes this test will break
+	ASSERT_NE(array.Size(), array.Capacity());
+	ASSERT_EQ(array.Size(), 0);
+	ASSERT_EQ(array.Capacity(), 10); // if the default capacity ever changes this test will break
 }
 
 TEST(GrowingArray, addOne)
 {
 	Core::GrowingArray<float> array;
 	array.Add(1.f);
-	ASSERT_TRUE(array.Size() == 1);
+	ASSERT_EQ(array.Size(), 1);
+}
+
+TEST(GrowingArray, ComplexTypeAdd)
+{
+	class Foo
+	{
+	public:
+		Foo() = default;
+		~Foo() = default;
+		int apa = 1;
+		float apa2 = 0.f;
+		int* pApa = nullptr;
+	};
+
+	Core::GrowingArray<Foo> arr(2);
+
+	arr.Add(Foo());
+	ASSERT_EQ(arr.Size(), 1);
+
+	ASSERT_EQ(arr[0].apa, 1);
+	ASSERT_EQ(arr[0].apa2, 0.f);
+	ASSERT_EQ(arr[0].pApa, nullptr);
+
 }
 
 TEST(GrowingArray, fill)
@@ -81,17 +104,31 @@ TEST(GrowingArray, Copy)
 		array.Add(1.f);
 
 	Core::GrowingArray<float> array2(array);
-
-	// float* data = *(float**)( ( (char*)&array ) + ( sizeof( uint32 ) * 2 ) );
-	// float* data2 = *(float**)( ( (char*)&array2 ) + ( sizeof( uint32 ) * 2 ) );
-
-	float* data = &array[0];
-	float* data2 = &array2[0];
-
-	ASSERT_TRUE(data != nullptr);
-	ASSERT_TRUE(data2 != nullptr);
-	ASSERT_NE(data, data2);
+	ASSERT_TRUE(&array[0] != nullptr);
+	ASSERT_TRUE(&array2[0] != nullptr);
+	ASSERT_NE(&array[0], &array2[0]);
 }
+
+TEST(GrowingArray, InitList)
+{
+	Core::GrowingArray<float> arr({ 1.f, 2.f, 3.f, 4.f, 5.f });
+	printf("{ Size: %d, Capacity: %d }\n", arr.Size(), arr.Capacity());
+	for(float& f : arr)
+		printf("%.3f, ", f);
+
+	printf("\n");
+	ASSERT_EQ(arr.Size(), 5);
+	ASSERT_EQ(arr.Capacity(), 5);
+}
+
+TEST(Array, InitList) 
+{
+	Core::Array<int> arr({1,2,3,4,5,6,7,8,9, 10 });
+
+	ASSERT_EQ(arr.Size(), 10);
+	ASSERT_EQ(arr.Capacity(), 10);
+}
+
 
 GTEST_API_ int main(int argc, char** argv)
 {

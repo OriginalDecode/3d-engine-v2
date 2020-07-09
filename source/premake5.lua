@@ -1,6 +1,4 @@
 
--- local fnc = require "test"
-
 newoption {
     trigger = "platform",
     value = "Platform",
@@ -67,7 +65,7 @@ end
     debugdir "%{wks.location}../bin"
     
 -- language "C++"
-    cppdialect "C++17"
+    cppdialect "c++17"
     disablewarnings { "4201" }
 -- flags { "C++14" }
 --filename "whiteroom"
@@ -121,9 +119,9 @@ if _OPTIONS["project"] ~= nil then
             targetname "%{wks.name}_%{cfg.buildcfg}Test"
             kind "ConsoleApp" --type [ConsoleApp, WindowedApp, SharedLib, StaticLib, Makefile, Utility, None, AndroidProj], WindowedApp is important on Windows and Mac OS X
             location ("./unit_test")
-
-            dependson { "Core", "Graphics" }
-            links { "Graphics", "Core", "Input", "Logger", "external_libs/googletest/lib/Debug/gtestd.lib", 
+            define { "UNIT_TEST" }
+            dependson { "Core" }
+            links { "Core", "Input", "Logger", "external_libs/googletest/lib/Debug/gtestd.lib", 
                                                             "external_libs/googletest/lib/Debug/gtest_maind.lib",
                                                             "external_libs/googletest/lib/Debug/gmockd.lib", 
                                                             "external_libs/googletest/lib/Debug/gmock_maind.lib" } --libraries to link

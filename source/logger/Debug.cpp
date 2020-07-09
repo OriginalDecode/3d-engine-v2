@@ -13,27 +13,16 @@
 
 namespace Log
 {
-
 	Debug* Debug::m_Instance = nullptr;
-
 	void Debug::Create()
 	{
 #ifdef DEBUG
-		assert(!m_Instance && "Debugobject already created");
 		m_Instance = new Debug();
-		if(!m_Instance)
-		{
-			assert(!"no instance");
-			return;
-		}
-
 		time_t now = time(0);
 		struct tm tstruct;
 		char buf[30];
 		localtime_s(&tstruct, &now);
-
 		strftime(buf, sizeof(buf), "%Y-%m-%d_%H_%M_%S", &tstruct);
-
 		std::string logFolder = "log\\";
 #ifdef _WIN32
 		CreateDirectory(L"log", NULL);
@@ -101,7 +90,8 @@ namespace Log
 		perror(buffer);
 		va_end(args);
 #ifdef _WIN32
-		OutputDebugStringA(buffer);
+		OutputDebugStringA(buffer); 
+		OutputDebugStringA("\n");
 #endif
 		m_Stream << buffer << std::endl;
 		m_Stream.flush(); /* maybe shouldn't flush ever call, only at end of frame? Could be more performant, but this gives the most data */
@@ -141,14 +131,10 @@ namespace Log
 		StackWalker sw;
 		sw.ShowCallstack();
 		m_Stream.flush();
-
-		const size_t cSize = strlen(ss.str().c_str()) + 1;
-		wchar_t* wc = new wchar_t[cSize];
+		const size_t len = ss.str().length() + 1;
+		wchar_t* wc = new wchar_t[len];
 		size_t tempSize;
-		mbstowcs_s(&tempSize, wc, cSize, ss.str().c_str(), cSize);
-
-		//_wassert(wc, 0, line);
-
+		mbstowcs_s(&tempSize, wc, len, ss.str().c_str(), len);
 		_wassert(wc, _CRT_WIDE(__FILE__), __LINE__);
 		delete[] wc;
 	}

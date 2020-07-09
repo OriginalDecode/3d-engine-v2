@@ -4,10 +4,11 @@
 #include <memory>
 
 class Window;
+class Camera;
+
 namespace Graphics
 {
 	void CreateImGuiContext();
-	class vkGraphicsDevice;
 	class GraphicsEngine
 	{
 	public:
@@ -17,16 +18,11 @@ namespace Graphics
 		static void Create();
 		static GraphicsEngine& Get();
 
-		bool Init( const Window& window );
-		void Present( float dt );
-
-		static vkGraphicsDevice& GetDevice() { return *m_Instance->m_Device; }
-
-		class Camera* GetCamera();
+		bool Init(const Window& window);
+		void Present(float dt);
 
 	private:
 		static std::unique_ptr<GraphicsEngine> m_Instance;
-		std::unique_ptr<vkGraphicsDevice> m_Device;
 
 		void BeginFrame();
 	};

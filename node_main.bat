@@ -1,1 +1,1 @@
-tsc && node ./source/scripts/output/main.js %*
+node ./source/scripts/output/main.js %*

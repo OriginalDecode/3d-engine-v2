@@ -59,6 +59,17 @@ function getArgs(inputFile: string): { failed: boolean; data: string[] } {
   return { failed: false, data: args };
 }
 
+interface CompiledShaderObject {
+  timestamp: Date;
+  shader: String;
+}
+
+// this function is to just collect the objects, we will then compare the timestamps and see which shaders has been updated.
+// might want to write a cache for the shaders, only compile what has been changed. This is not relevant yet tho.
+function getCompiledShaders(): Array<CompiledShaderObject> {
+  return new Array<CompiledShaderObject>();
+}
+
 async function compileShaders(rootDir: string) {
   const config = {
     compiler: `${rootDir}\\source\\external_libs\\dxc\\bin\\Debug\\bin\\dxc.exe`,
