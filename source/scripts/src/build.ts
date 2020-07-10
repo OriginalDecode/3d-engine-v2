@@ -5,14 +5,16 @@ import chalk from 'chalk';
 
 interface BuildOptions {
   platform: string;
-  solution?: string; // only valid on windows
+  solution: string | null;
   verbosity: string;
   config: string;
   rebuild: boolean;
 }
 
-function buildLinux(rootDir: string) {
-  //
+function buildLinux(rootDir: string): any {
+  // console.error('No Linux buildscript');
+  const proc = spawn('make', [`${rootDir}/source`])
+  return null;
 }
 
 function buildWindows(rootDir: string, options: BuildOptions): any {
@@ -68,32 +70,33 @@ function build(rootDir: string, options: BuildOptions) {
   }
   let warnings = 0;
   let errors = 0;
+  if (proc) {
+    proc.stdout.pipe(split2()).on('data', (data: any) => {
+      const string = data.toString();
+      if (string.indexOf('warning') !== -1) {
+        console.log(chalk.yellow(string));
+        warnings++;
+      } else if (string.indexOf('error') !== -1) {
+        console.log(chalk.red(string));
+        errors++;
+      } else if (string.indexOf('message') !== -1) {
+        console.log(chalk.blueBright(string));
+      } else {
+        console.log(string);
+      }
+    });
 
-  proc.stdout.pipe(split2()).on('data', (data: any) => {
-    const string = data.toString();
-    if (string.indexOf('warning') !== -1) {
-      console.log(chalk.yellow(string));
-      warnings++;
-    } else if (string.indexOf('error') !== -1) {
-      console.log(chalk.red(string));
-      errors++;
-    } else if (string.indexOf('message') !== -1) {
-      console.log(chalk.blueBright(string));
-    } else {
-      console.log(string);
-    }
-  });
+    proc.stderr.pipe(split2()).on('data', (data: any) => {
+      console.error(chalk.red.underline.bold(data.toString()));
+    });
 
-  proc.stderr.pipe(split2()).on('data', (data: any) => {
-    console.error(chalk.red.underline.bold(data.toString()));
-  });
-
-  proc.on('exit', (data: any) => {
-    console.log({ warnings, errors });
-    if (data === 0) {
-      console.log(chalk.green('Compile finished successfully!'));
-    }
-  });
+    proc.on('exit', (data: any) => {
+      console.log({ warnings, errors });
+      if (data === 0) {
+        console.log(chalk.green('Compile finished successfully!'));
+      }
+    });
+  }
 }
 
 export { build, BuildOptions };

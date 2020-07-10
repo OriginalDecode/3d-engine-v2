@@ -1,5 +1,5 @@
 import { compileShaders } from './compile_shaders';
-import { build } from './build';
+import { build, BuildOptions } from './build';
 import { configure } from './configure_builds';
 import os from 'os';
 import { utils } from './utils';
@@ -32,14 +32,20 @@ if (args.indexOf('-configure') !== -1) {
   });
 }
 
-if (args.indexOf('-build') != -1) {
-  const platform = os.platform();
-  if (platform === 'win32') {
-    const solution = `source\\${args[args.indexOf('-build') + 1]}`;
-    const verbosity = args[args.indexOf('-v') + 1];
-    const config = args[args.indexOf('-c') + 1];
-    const clean = args.indexOf('-clean') != -1;
-    const rebuild = args.indexOf('-rebuild') != -1;
-    build(process.cwd(), { platform, solution, verbosity, config, rebuild });
+function getArgValue(arg:string ) : string | null {
+  if(args.indexOf(arg) !== -1) {
+    return args[args.indexOf(arg) + 1];
   }
+  return null;
+}
+
+if (getArgValue('-build')) {
+  const options: BuildOptions = {
+    verbosity: getArgValue('-v')!,
+    config: getArgValue('-c')!,
+    rebuild: getArgValue('-rebuild') !== null,
+    solution: getArgValue('-solution'),
+    platform: os.platform()
+  };
+  build(process.cwd(), options);
 }
