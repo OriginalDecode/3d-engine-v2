@@ -133,7 +133,10 @@ export namespace configure {
     });
 
     proc.stderr.pipe(split2()).on('data', (data: any) => {
-      console.error(chalk.red.underline.bold(data.toString()));
+      const buffer = data.toString();
+      if(buffer.search(/err/gi) !== -1) console.error(chalk.red.underline.bold(buffer));
+      if(buffer.search(/warn/gi) !== -1) console.warn(buffer);
+      else console.log(buffer);
     });
   }
 }

@@ -45,5 +45,5 @@ void ConstantBuffer::Destroy(VkDevice device)
 
 VkDescriptorBufferInfo ConstantBuffer::GetBufferDesc()
 {
-	return VkDescriptorBufferInfo{ .buffer{ m_Buffer }, .offset{ 0 }, .range{ m_BufferSize } };
+	return VkDescriptorBufferInfo{ .buffer = m_Buffer, .offset = 0, .range = m_BufferSize };
 }

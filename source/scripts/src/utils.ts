@@ -18,9 +18,13 @@ export namespace utils {
 }
 
 console.error = (buffer: any) => {
-  process.stdout.write(chalk.red(buffer) + '\n');
+  // if(buffer.search(/error/gi)) process.stdout.write(chalk.red(buffer) + '\n');
+  // else if(buffer.search(/warn/gi)) process.stdout.write(chalk.yellow(buffer) + '\n');
+  // else 
+  process.stdout.write(buffer + '\n');
 };
 
 console.warn = (buffer: any) => {
-  process.stdout.write(chalk.yellow(buffer) + '\n');
+  // if(buffer.search(/warn/gi)) process.stdout.write(chalk.yellow(buffer) + '\n');
+  // else process.stdout.write(buffer + '\n');
 };

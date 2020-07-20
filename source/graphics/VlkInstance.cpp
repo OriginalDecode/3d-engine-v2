@@ -10,7 +10,7 @@
 #endif
 
 #include <vector>
-
+#include <cstdio>
 VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT /* flags */,
 												   VkDebugReportObjectTypeEXT /* objectType */, uint64_t /* object */,
 												   size_t /* location */, int32_t /* messageCode */,
@@ -18,7 +18,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(VkDebugReportFlagsEXT /* flag
 												   void* /* pUserData */)
 {
 	char temp[USHRT_MAX] = { 0 };
-	sprintf_s(temp, "Vulkan Warning :%s", pMessage);
+	snprintf(temp, USHRT_MAX, "Vulkan Warning :%s", pMessage);
 	LOG_MESSAGE(temp);
 	return VK_FALSE;
 }
@@ -32,7 +32,7 @@ VkDebugReportCallbackEXT debugCallback = nullptr;
 void SetupDebugCallback(VkInstance instance)
 {
 	auto FCreateCallback = VK_GET_FNC_POINTER(vkCreateDebugReportCallbackEXT, instance);
-	assert(FCreateCallback && "Failed to setup callback!");
+	ASSERT(FCreateCallback, "Failed to setup callback!");
 
 	if(!FCreateCallback)
 		return;
@@ -45,8 +45,7 @@ void SetupDebugCallback(VkInstance instance)
 	createInfo.pfnCallback = &DebugReportCallback;
 	createInfo.flags = flags;
 
-	VkResult result = FCreateCallback(instance, &createInfo, nullptr, &debugCallback);
-	assert(result == VK_SUCCESS);
+	VERIFY(FCreateCallback(instance, &createInfo, nullptr, &debugCallback) == VK_SUCCESS, "Failed to create callback");
 }
 
 VlkInstance::~VlkInstance()
@@ -92,8 +91,9 @@ void VlkInstance::Release()
 VkSurfaceKHR VlkInstance::CreateSurface(const VkWin32SurfaceCreateInfoKHR& createInfo) const
 {
 	VkSurfaceKHR surface = nullptr;
+#ifdef _WIN32
 	VERIFY(vkCreateWin32SurfaceKHR(m_Instance, &createInfo, nullptr, &surface) == VK_SUCCESS, "Failed to create surface");
-
+#endif
 	return surface;
 }
 

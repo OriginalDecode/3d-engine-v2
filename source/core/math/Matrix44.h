@@ -701,7 +701,7 @@ namespace Core
 
 		Matrix44<T> returnMatrix;
 
-		for(i = 0; i < 16; i++)
+		for(int i = 0; i < 16; i++)
 			returnMatrix[i] = inv[i] * det;
 
 		return returnMatrix;

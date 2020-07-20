@@ -2,18 +2,20 @@
 #define DL_ASSERT_HEADER
 
 #include <stdlib.h>
+#ifdef _WIN32
 #include <crtdbg.h>
+#include <crtdefs.h>
+#endif 
 
 #include "Debug.h"
-#include <crtdefs.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-
+#ifdef _WIN32
 	_CRTIMP void __cdecl _wassert( _In_z_ const wchar_t* _Message, _In_z_ const wchar_t* _File, _In_ unsigned _Line );
-
+#endif
 #ifdef __cplusplus
 }
 #endif

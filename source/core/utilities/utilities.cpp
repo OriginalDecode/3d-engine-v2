@@ -1,6 +1,8 @@
 #include "utilities.h"
 #include "Core/hash/Murmur3.h"
+#ifdef _WIN32
 #include <Windows.h>
+#endif
 namespace Core
 {
 
@@ -56,7 +58,7 @@ namespace Core
 		char buffer[1024];
 		va_list args;
 		va_start(args, fmt);
-		vsprintf_s(buffer, fmt, args);
+		snprintf(buffer, 1024, fmt, args);
 		perror(buffer);
 		va_end(args);
 #ifdef _WIN32

@@ -21,9 +21,11 @@
 
 #include "logger/Debug.h"
 
-#include <windows.h>
 #include <vulkan/vulkan.h>
+#ifdef _WIN32
+#include <windows.h>
 #include <vulkan/vulkan_win32.h>
+#endif 
 
 #include "Cube.h"
 
