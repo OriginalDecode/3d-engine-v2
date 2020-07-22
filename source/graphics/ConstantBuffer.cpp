@@ -5,12 +5,8 @@
 
 #include <vulkan/vulkan_core.h>
 
-ConstantBuffer::ConstantBuffer()
-{
-	m_MemoryRequirement = {};
-}
-
-void ConstantBuffer::Init(VlkDevice* device)
+ConstantBuffer::ConstantBuffer() = default;
+void ConstantBuffer::Init(VlkDevice* device, VlkPhysicalDevice* physDevice)
 {
 	if(m_Vars.Size() <= 0)
 	{
@@ -26,16 +22,20 @@ void ConstantBuffer::Init(VlkDevice* device)
 
 	auto [buffer, memReq] = device->CreateBuffer(createInfo);
 	m_Buffer = buffer;
-	m_MemoryRequirement = memReq;
+	m_DeviceMemory = device->AllocateMemory(memReq, physDevice);
+	Bind(device);
 }
 
-void ConstantBuffer::Bind(VlkDevice* device, VlkPhysicalDevice* physDevice)
+void ConstantBuffer::Bind(VlkDevice* device)
 {
-	VkDeviceMemory memory = device->BindBuffer(m_Buffer, m_MemoryRequirement, physDevice);
-	int8* data = (int8*)device->MapMemory(memory, 0, m_BufferSize, 0);
-	memcpy(data, &m_Vars[0], m_BufferSize);
+	device->BindBuffer(m_Buffer, m_DeviceMemory);
+}
 
-	device->UnmapMemory(memory);
+void ConstantBuffer::Map(VlkDevice* device)
+{
+	int8* data = (int8*)device->MapMemory(m_DeviceMemory, 0, m_BufferSize, 0);
+	memcpy(data, &m_Vars[0], m_BufferSize);
+	device->UnmapMemory(m_DeviceMemory);
 }
 
 void ConstantBuffer::Destroy(VkDevice device)

@@ -72,6 +72,13 @@ std::tuple<VkBuffer, VkMemoryRequirements> VlkDevice::CreateBuffer(const VkBuffe
 	return { buffer, memRequirements };
 }
 
+void VlkDevice::BindBuffer(VkBuffer buffer, VkDeviceMemory memory) 
+{
+	if(vkBindBufferMemory(m_Device, buffer, memory, 0) != VK_SUCCESS)
+		ASSERT(false, "Failed to bind buffer memory!");
+}
+
+
 VkDeviceMemory VlkDevice::BindBuffer(VkBuffer buffer, const VkMemoryRequirements& requirements,
 									 VlkPhysicalDevice* physDevice)
 {

@@ -34,6 +34,7 @@ public:
 	void FreeMemory(VkDeviceMemory memory);
 	std::tuple<VkBuffer, VkMemoryRequirements> CreateBuffer(const VkBufferCreateInfo& createInfo);
 	VkDeviceMemory BindBuffer(VkBuffer buffer, const VkMemoryRequirements& requirements, VlkPhysicalDevice* physDevice);
+	void BindBuffer(VkBuffer buffer, VkDeviceMemory memory);
 
 	void CopyBuffer(VkBuffer src, VkBuffer dst, VkDeviceSize size, VlkCommandPool* commandPool);
 

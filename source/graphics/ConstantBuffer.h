@@ -11,8 +11,9 @@ class ConstantBuffer
 {
 public:
 	ConstantBuffer();
-	void Init(VlkDevice* device);
-	void Bind(VlkDevice* device, VlkPhysicalDevice* physDevice);
+	void Init(VlkDevice* device, VlkPhysicalDevice* physDevice);
+	void Bind(VlkDevice* device);
+	void Map(VlkDevice* physDevice);
 	void Destroy(VkDevice device);
 
 	template <typename T>
@@ -22,7 +23,6 @@ public:
 private:
 	uint32 m_BufferSize = 0;
 	Core::GrowingArray<void*> m_Vars;
-	VkMemoryRequirements m_MemoryRequirement;
 	VkBuffer m_Buffer;
 	VkDeviceMemory m_DeviceMemory;
 };

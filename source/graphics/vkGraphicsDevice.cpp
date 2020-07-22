@@ -120,7 +120,7 @@ bool vkGraphicsDevice::Init(const Window& window)
 
 	_ViewProjection.RegVar(_Camera.GetViewProjectionPointer());
 	_ViewProjection.RegVar(&_LightDir);
-	_ViewProjection.Init(m_LogicalDevice);
+	_ViewProjection.Init(m_LogicalDevice, m_PhysicalDevice);
 
 	m_CommandPool.Init(m_LogicalDevice->GetDevice(), m_PhysicalDevice->GetQueueFamilyIndex());
 
@@ -253,7 +253,7 @@ void vkGraphicsDevice::DrawFrame(float dt)
 	UpdateCamera(dt);
 
 	// BindConstantBuffer(&_ViewProjection, 0);
-	_ViewProjection.Bind(m_LogicalDevice, m_PhysicalDevice);
+	_ViewProjection.Map(m_LogicalDevice);
 
 	const VkPipelineStageFlags waitDstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // associated with
 																								 // having
